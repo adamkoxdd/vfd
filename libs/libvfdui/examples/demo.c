@@ -1,224 +1,73 @@
 #define _POSIX_C_SOURCE 200809L
 #include "vfdui/vfdui.h"
-
 #include <stdio.h>
-#include <string.h>
 #include <time.h>
 
-static void frame_sleep(void) {
-    struct timespec delay = {
-        .tv_sec = 0,
-        .tv_nsec = 16000000
-    };
-    nanosleep(&delay, NULL);
-}
+static void sleep_frame(void){struct timespec d={0,16000000};nanosleep(&d,NULL);}
 
-int main(void) {
-    VfdTheme theme = vfd_theme_default();
-    VfdWindow *window = vfd_window_create(
-        "VFD UI Stage 2",
-        1180,
-        760,
-        &theme
-    );
+int main(void){
+    VfdTheme theme=vfd_theme_default();
+    VfdWindow *w=vfd_window_create("VFD UI 0.4",1200,760,&theme);
+    if(!w){fprintf(stderr,"failed to create VFD window\n");return 1;}
 
-    if (!window) {
-        fprintf(stderr, "failed to create VFD window\n");
-        return 1;
+    VfdAnim intro,drawer;
+    vfd_anim_init(&intro,0);vfd_anim_to(&intro,1,1.2,VFD_EASE_OUT_CUBIC);
+    vfd_anim_init(&drawer,0);
+    bool expanded=false;
+    double load=.64;
+
+    while(vfd_window_is_open(w)){
+        VfdEvent e=vfd_window_poll(w);if(e.quit)vfd_window_close(w);
+        double dt=vfd_window_delta(w),t=vfd_window_time(w);
+        double intro_v=vfd_anim_update(&intro,dt);
+        double drawer_v=vfd_anim_update(&drawer,dt);
+
+        vfd_window_begin(w);
+        int ww=vfd_window_width(w),hh=vfd_window_height(w);
+        VfdRect root={20,20,ww-40,hh-40};
+        vfd_panel(w,root,true);
+
+        VfdRect content=vfd_inset(root,26);
+        VfdRect header=vfd_rect_split_top(&content,88,18);
+        vfd_title(w,"VFD UI ENGINE // 0.4",(VfdRect){header.x,header.y,header.width,32});
+        vfd_label(w,"PHASE 3 ANIMATION + PHASE 4 LAYOUT",(VfdRect){header.x,header.y+40,header.width,24},12,false,VFD_ALIGN_LEFT,theme.dim);
+
+        VfdLayout grid=vfd_layout_grid(content,6,3,16,0);
+        for(int i=0;i<6;i++){
+            VfdRect card=vfd_layout_next(&grid);
+            double pulse=vfd_pulse(t+i*.17,.22,.07,.20);
+            VfdFx fx={.opacity=1,.translate_y=(1-intro_v)*24,.scale=.97+.03*intro_v,.glow=pulse};
+            vfd_fx_push(w,fx);
+            vfd_panel(w,card,true);
+            char title[64],value[64];
+            snprintf(title,sizeof title,"MODULE %02d",i+1);
+            snprintf(value,sizeof value,"%03d%%",(int)(((load+i*.055)>1?1:(load+i*.055))*100));
+            vfd_label(w,title,vfd_insets(card,16,16,16,0),13,true,VFD_ALIGN_LEFT,theme.phosphor);
+            vfd_meter(w,vfd_insets(card,16,54,16,card.height-82),((load+i*.055)>1?1:(load+i*.055)),18);
+            vfd_label(w,value,vfd_anchor(card,100,24,VFD_ANCHOR_BOTTOM_RIGHT,14),12,true,VFD_ALIGN_RIGHT,theme.glow);
+            vfd_fx_pop(w);
+        }
+
+        VfdRect exit_rect=vfd_anchor(root,170,42,VFD_ANCHOR_BOTTOM_RIGHT,26);
+        VfdRect drawer_btn=vfd_anchor(root,190,42,VFD_ANCHOR_BOTTOM_LEFT,26);
+        if(vfd_button(w,drawer_btn,expanded?"CLOSE DRAWER":"OPEN DRAWER",&e)){
+            expanded=!expanded;vfd_anim_to(&drawer,expanded?1:0,.35,VFD_EASE_IN_OUT_QUAD);
+        }
+        if(vfd_button(w,exit_rect,"EXIT SYSTEM",&e))vfd_window_close(w);
+
+        if(drawer_v>0.001){
+            VfdRect drawer_rect={root.x,root.y+root.height-170*drawer_v,root.width,170};
+            vfd_panel(w,drawer_rect,true);
+            VfdLayout row=vfd_layout_horizontal(vfd_inset(drawer_rect,18),4,12,0,VFD_CROSS_STRETCH);
+            const char *labels[]={"FADE","SLIDE","PULSE","WARMUP"};
+            for(int i=0;i<4;i++){VfdRect r=vfd_layout_next(&row);vfd_panel(w,r,true);vfd_label(w,labels[i],vfd_anchor(r,r.width-20,24,VFD_ANCHOR_CENTER,10),13,true,VFD_ALIGN_CENTER,theme.phosphor);}
+        }
+
+        vfd_noise(w,.45);
+        vfd_vignette(w,.28);
+        vfd_crt_warmup(w,intro_v);
+        vfd_window_end(w);
+        sleep_frame();
     }
-
-    bool telemetry = true;
-    bool glow = true;
-    double volume = 0.72;
-
-    char search_buffer[128] = "";
-    VfdTextboxState search = {
-        .buffer = search_buffer,
-        .capacity = sizeof search_buffer,
-        .length = 0,
-        .cursor = 0,
-        .focused = false,
-        .password = false
-    };
-
-    const char *tracks[] = {
-        "Duvet // bôa",
-        "Digital Bath // Deftones",
-        "Enjoy the Silence // Depeche Mode",
-        "Nightcall // Kavinsky",
-        "Oblivion // Grimes",
-        "Resonance // HOME",
-        "Teardrop // Massive Attack",
-        "The Perfect Girl // Mareux",
-        "Windowlicker // Aphex Twin",
-        "Xtal // Aphex Twin",
-        "Young // Vacations",
-        "Zero // Smashing Pumpkins"
-    };
-
-    VfdListState track_list = {
-        .selected = 0,
-        .hovered = -1,
-        .scroll = 0
-    };
-
-    const char *modes[] = {
-        "LIBRARY",
-        "VISUALIZER",
-        "QUEUE"
-    };
-
-    VfdDropdownState mode = {
-        .open = false,
-        .selected = 0,
-        .hovered = -1
-    };
-
-    VfdTreeRow tree[] = {
-        {"VFD", 0, true, true},
-        {"apps", 1, true, true},
-        {"music", 2, false, false},
-        {"lock", 2, false, false},
-        {"shell", 2, false, false},
-        {"libs", 1, true, true},
-        {"libvfdui", 2, false, false},
-        {"deploy", 1, false, false}
-    };
-    int tree_selected = 0;
-
-    while (vfd_window_is_open(window)) {
-        VfdEvent event = vfd_window_poll(window);
-        if (event.quit) vfd_window_close(window);
-
-        vfd_window_begin(window);
-
-        int width = vfd_window_width(window);
-        int height = vfd_window_height(window);
-
-        vfd_panel(
-            window,
-            (VfdRect){20, 20, width - 40, height - 40},
-            true
-        );
-
-        vfd_title(
-            window,
-            "VFD UI ENGINE // STAGE 2",
-            (VfdRect){46, 44, width - 92, 36}
-        );
-
-        vfd_label(
-            window,
-            "INTERACTIVE CONTROLS // APPLICATION TOOLKIT",
-            (VfdRect){46, 78, width - 92, 24},
-            12, false, VFD_ALIGN_LEFT, theme.dim
-        );
-
-        vfd_separator(window, 46, 112, width - 46, 112);
-
-        vfd_textbox(
-            window,
-            (VfdRect){46, 136, 350, 62},
-            "SEARCH",
-            &search,
-            &event
-        );
-
-        vfd_dropdown(
-            window,
-            (VfdRect){420, 136, 260, 48},
-            "VIEW",
-            modes,
-            3,
-            &mode,
-            &event
-        );
-
-        vfd_checkbox(
-            window,
-            (VfdRect){710, 140, 190, 30},
-            "TELEMETRY",
-            &telemetry,
-            &event
-        );
-
-        vfd_switch(
-            window,
-            (VfdRect){920, 140, 190, 30},
-            "GLOW",
-            &glow,
-            &event
-        );
-
-        vfd_slider(
-            window,
-            (VfdRect){46, 246, 634, 34},
-            "VOLUME",
-            &volume,
-            0.0,
-            1.0,
-            &event
-        );
-
-        vfd_label(
-            window,
-            "TRACK LIST",
-            (VfdRect){46, 306, 330, 24},
-            13, true, VFD_ALIGN_LEFT, theme.phosphor
-        );
-
-        vfd_list(
-            window,
-            (VfdRect){46, 336, 634, height - 382},
-            tracks,
-            (int)(sizeof tracks / sizeof tracks[0]),
-            42,
-            &track_list,
-            &event
-        );
-
-        vfd_label(
-            window,
-            "PROJECT TREE",
-            (VfdRect){714, 306, 300, 24},
-            13, true, VFD_ALIGN_LEFT, theme.phosphor
-        );
-
-        vfd_tree(
-            window,
-            (VfdRect){714, 336, width - 760, 260},
-            tree,
-            (int)(sizeof tree / sizeof tree[0]),
-            34,
-            &tree_selected,
-            &event
-        );
-
-        char status[256];
-        snprintf(
-            status,
-            sizeof status,
-            "SELECTED // %s",
-            tracks[track_list.selected]
-        );
-
-        vfd_panel(
-            window,
-            (VfdRect){714, 616, width - 760, 74},
-            true
-        );
-
-        vfd_label(
-            window,
-            status,
-            (VfdRect){732, 638, width - 796, 28},
-            12, true, VFD_ALIGN_LEFT, theme.glow
-        );
-
-        vfd_window_end(window);
-        frame_sleep();
-    }
-
-    vfd_window_destroy(window);
-    return 0;
+    vfd_window_destroy(w);return 0;
 }

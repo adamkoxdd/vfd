@@ -1,21 +1,18 @@
-# libvfdui 0.2
+# libvfdui 0.4
 
-Stage 2 adds:
+## Phase 3
+- easing functions
+- timeline animations
+- pulse/blink helpers
+- effect transforms
+- CRT warmup
+- vignette
+- phosphor noise
 
-- textbox with cursor editing and password mode
-- scrollable list
-- scrollview clipping
-- checkbox
-- switch
-- slider
-- dropdown
-- tree view
-- mouse wheel events
-
-## Build
-
-```sh
-make clean
-make
-./build/vfdui-demo
-```
+## Phase 4
+- vertical layout
+- horizontal layout
+- grid layout
+- padding/insets
+- anchor positioning
+- split helpers
