@@ -2,6 +2,7 @@
 #include "vfdui/vfdui.h"
 #include <stdio.h>
 #include <time.h>
+#include <math.h>
 
 static void sleep_frame(void){struct timespec d={0,16000000};nanosleep(&d,NULL);}
 
@@ -10,10 +11,12 @@ int main(void){
     VfdWindow *w=vfd_window_create("VFD UI 0.4",1200,760,&theme);
     if(!w){fprintf(stderr,"failed to create VFD window\n");return 1;}
 
-    VfdAnim intro,drawer;
+    VfdAnim intro,drawer,action;
     vfd_anim_init(&intro,0);vfd_anim_to(&intro,1,1.2,VFD_EASE_OUT_CUBIC);
     vfd_anim_init(&drawer,0);
+    vfd_anim_init(&action,1);
     bool expanded=false;
+    int action_mode=0;
     double load=.64;
 
     while(vfd_window_is_open(w)){
@@ -21,6 +24,7 @@ int main(void){
         double dt=vfd_window_delta(w),t=vfd_window_time(w);
         double intro_v=vfd_anim_update(&intro,dt);
         double drawer_v=vfd_anim_update(&drawer,dt);
+        double action_v=vfd_anim_update(&action,dt);
 
         vfd_window_begin(w);
         int ww=vfd_window_width(w),hh=vfd_window_height(w);
@@ -36,7 +40,19 @@ int main(void){
         for(int i=0;i<6;i++){
             VfdRect card=vfd_layout_next(&grid);
             double pulse=vfd_pulse(t+i*.17,.22,.07,.20);
-            VfdFx fx={.opacity=1,.translate_y=(1-intro_v)*24,.scale=.97+.03*intro_v,.glow=pulse};
+            double action_x=action_mode==2?(1-action_v)*70:0;
+            double action_scale=action_mode==3
+                ? 1+sin(action_v*3.141592653589793)*.08
+                : 1;
+            double action_opacity=action_mode==1?action_v:1;
+
+            VfdFx fx={
+                .opacity=action_opacity,
+                .translate_x=action_x,
+                .translate_y=(1-intro_v)*24,
+                .scale=(.97+.03*intro_v)*action_scale,
+                .glow=pulse
+            };
             vfd_fx_push(w,fx);
             vfd_panel(w,card,true);
             char title[64],value[64];
@@ -60,12 +76,25 @@ int main(void){
             vfd_panel(w,drawer_rect,true);
             VfdLayout row=vfd_layout_horizontal(vfd_inset(drawer_rect,18),4,12,0,VFD_CROSS_STRETCH);
             const char *labels[]={"FADE","SLIDE","PULSE","WARMUP"};
-            for(int i=0;i<4;i++){VfdRect r=vfd_layout_next(&row);vfd_panel(w,r,true);vfd_label(w,labels[i],vfd_anchor(r,r.width-20,24,VFD_ANCHOR_CENTER,10),13,true,VFD_ALIGN_CENTER,theme.phosphor);}
+            for(int i=0;i<4;i++){
+                VfdRect r=vfd_layout_next(&row);
+
+                if(vfd_button(w,r,labels[i],&e)){
+                    action_mode=i+1;
+                    vfd_anim_init(&action,0);
+                    vfd_anim_to(
+                        &action,
+                        1,
+                        i==3?1.0:.55,
+                        VFD_EASE_OUT_CUBIC
+                    );
+                }
+            }
         }
 
         vfd_noise(w,.45);
         vfd_vignette(w,.28);
-        vfd_crt_warmup(w,intro_v);
+        vfd_crt_warmup(w,action_mode==4?action_v:intro_v);
         vfd_window_end(w);
         sleep_frame();
     }
