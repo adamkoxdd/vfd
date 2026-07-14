@@ -1,0 +1,11 @@
+prefix=/usr/local
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: vfdui
+Description: Shared native UI engine for the VFD desktop
+Version: 0.2.0
+Requires: x11 cairo pangocairo
+Libs: -L${libdir} -lvfdui -lm
+Cflags: -I${includedir}
