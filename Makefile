@@ -2,11 +2,14 @@ CC ?= cc
 CFLAGS ?= -O2 -pipe -std=c17 -Wall -Wextra -Wpedantic
 CPPFLAGS += -Iinclude $(shell pkg-config --cflags xft xinerama dbus-1 2>/dev/null)
 BUILD=build
+CARGO ?= cargo
+MUSIC_DIR=apps/music
+MUSIC_BIN=$(MUSIC_DIR)/target/release/vfdmusic
 CORELIBSRC=libs/libutil/util.c libs/libconfig/config.c libs/libtheme/theme.c libs/libipc/ipc.c
 CORELIBOBJ=$(CORELIBSRC:%.c=$(BUILD)/%.o)
 UIOBJ=$(BUILD)/libs/libui/ui.o
 WIDGETOBJ=$(BUILD)/libs/libwidgets/widgets.o
-all: $(BUILD)/vfdd $(BUILD)/vfdctl $(BUILD)/vfdbar $(BUILD)/vfdfm $(BUILD)/vfdshell $(BUILD)/vfdsettings $(BUILD)/vfdfetch $(BUILD)/vfdnotify $(BUILD)/vfdwall
+all: $(BUILD)/vfdd $(BUILD)/vfdctl $(BUILD)/vfdbar $(BUILD)/vfdfm $(BUILD)/vfdshell $(BUILD)/vfdsettings $(BUILD)/vfdfetch $(BUILD)/vfdnotify $(BUILD)/vfdwall vfdmusic
 $(BUILD)/%.o: %.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
@@ -27,6 +30,9 @@ $(BUILD)/vfdfetch: $(CORELIBOBJ) $(BUILD)/apps/fetch/main.o
 $(BUILD)/vfdnotify: $(CORELIBOBJ) $(UIOBJ) $(BUILD)/services/notifyd/main.o
 	$(CC) $^ -o $@ $(shell pkg-config --libs xft xinerama dbus-1 2>/dev/null) -lX11
 
+vfdmusic:
+	cd $(MUSIC_DIR) && $(CARGO) build --release
+
 $(BUILD)/vfdwall: $(BUILD)/apps/wall/main.o
 	$(CC) $^ -o $@ $(shell pkg-config --libs xinerama 2>/dev/null) -lX11 -lgif
 install: all
@@ -40,16 +46,19 @@ install: all
 	install -Dm755 $(BUILD)/vfdfetch $(HOME)/.local/bin/vfdfetch
 	install -Dm755 $(BUILD)/vfdnotify $(HOME)/.local/bin/vfdnotify
 	install -Dm755 $(BUILD)/vfdwall $(HOME)/.local/bin/vfdwall
+	install -Dm755 $(MUSIC_BIN) $(HOME)/.local/bin/vfdmusic
 	install -Dm755 apps/terminal/vfdterm $(HOME)/.local/bin/vfdterm
 	install -Dm644 apps/launcher/vfdshell.desktop $(HOME)/.local/share/applications/vfdshell.desktop
 	install -Dm644 apps/settings/vfdsettings.desktop $(HOME)/.local/share/applications/vfdsettings.desktop
 	install -Dm644 apps/terminal/vfdterm.desktop $(HOME)/.local/share/applications/vfdterm.desktop
 	install -Dm644 apps/fetch/vfdfetch.desktop $(HOME)/.local/share/applications/vfdfetch.desktop
 	install -Dm644 apps/wall/vfdwall.desktop $(HOME)/.local/share/applications/vfdwall.desktop
+	install -Dm644 apps/music/vfdmusic.desktop $(HOME)/.local/share/applications/vfdmusic.desktop
 	install -Dm644 apps/terminal/terminal.toml $(HOME)/.config/vfd/terminal.toml
 	install -Dm644 config/fontconfig/99-vfd-fonts.conf $(HOME)/.config/fontconfig/conf.d/99-vfd-fonts.conf
 	install -Dm644 themes/lain/theme.ini $(HOME)/.config/vfd/themes/lain/theme.ini
 	@test -f $(HOME)/.config/vfd/wall.ini || install -Dm644 config/wall/wall.ini $(HOME)/.config/vfd/wall.ini
 clean:
 	rm -rf $(BUILD)
-.PHONY: all install clean
+	cd $(MUSIC_DIR) && $(CARGO) clean
+.PHONY: all install clean vfdmusic

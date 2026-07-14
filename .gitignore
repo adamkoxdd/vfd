@@ -4,3 +4,7 @@ build/
 *.so
 *.log
 .cache/
+
+# Rust build artifacts
+apps/music/target/
+target/

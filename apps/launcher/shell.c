@@ -200,7 +200,7 @@ static void load_files(App *a) {
     add_action(a, "Downloads", "~/Downloads", "vfdfm ~/Downloads");
     add_action(a, "Documents", "~/Documents", "vfdfm ~/Documents");
     add_action(a, "Pictures", "~/Pictures", "vfdfm ~/Pictures");
-    add_action(a, "Music", "~/Music", "vfdfm ~/Music");
+    add_action(a, "Music", "VFD Music", "/home/adam/.local/bin/vfdmusic");
     add_action(a, "Root", "/", "vfdfm /");
     snprintf(command, sizeof command, "vfdfm '%s/.config'", home);
     add_action(a, "Configuration", "~/.config", command);
