@@ -1,0 +1,37 @@
+#!/bin/sh
+set -eu
+
+mode="${1:-region}"
+shots_dir="${XDG_PICTURES_DIR:-$HOME/Pictures}/Screenshots"
+mkdir -p "$shots_dir"
+
+timestamp="$(date '+%Y-%m-%d_%H-%M-%S')"
+output="$shots_dir/VFD_$timestamp.png"
+tmp="$(mktemp --suffix=.png)"
+trap 'rm -f "$tmp"' EXIT INT TERM HUP
+
+case "$mode" in
+    region)
+        maim --hidecursor --select "$tmp" || exit 0
+        ;;
+    screen|fullscreen)
+        maim --hidecursor "$tmp"
+        ;;
+    window)
+        command -v xdotool >/dev/null 2>&1 || {
+            notify-send -u critical "VFD SHOT" "xdotool is required for window capture"
+            exit 1
+        }
+        window_id="$(xdotool getactivewindow)"
+        maim --hidecursor --window "$window_id" "$tmp"
+        ;;
+    *)
+        printf 'usage: vfdshot [region|screen|window]\n' >&2
+        exit 2
+        ;;
+esac
+
+[ -s "$tmp" ] || exit 0
+install -Dm644 "$tmp" "$output"
+xclip -selection clipboard -target image/png -in < "$tmp"
+notify-send -u low "VFD SHOT" "Saved and copied // $(basename "$output")"

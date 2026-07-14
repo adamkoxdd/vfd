@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=VFD Screenshot
+Comment=Select a region, save it, and copy it to the clipboard
+Exec=vfdshot region
+Icon=applets-screenshooter
+Terminal=false
+Categories=Utility;Graphics;
+StartupNotify=false
