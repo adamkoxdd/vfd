@@ -15,7 +15,7 @@
 
 typedef struct { int x,w; const char *cmd; } Hit;
 typedef struct { VfdWindow *w; int width; Hit hits[MAX_HITS]; int nhit; VfdColor bg,fg,dim,accent,selection; } Bar;
-typedef struct { char cpu[16], memory[16], battery[16], unread[16], clock[128]; int connected; } State;
+typedef struct { char cpu[16], memory[16], battery[16], unread[16], clock[128], media_status[16], media_artist[128], media_title[128]; int connected; } State;
 
 static volatile sig_atomic_t running=1;
 static void stop(int s){(void)s;running=0;}
@@ -26,6 +26,8 @@ static void state_unknown(State *s){
     snprintf(s->battery,sizeof s->battery,"?");
     snprintf(s->unread,sizeof s->unread,"0");
     snprintf(s->clock,sizeof s->clock,"--.--.---- // --:--:--");
+    snprintf(s->media_status,sizeof s->media_status,"stopped");
+    s->media_artist[0]=0; s->media_title[0]=0;
     s->connected=0;
 }
 
@@ -49,6 +51,9 @@ static int fetch_state(State *s){
         else if(!strcmp(line,"battery"))copy_value(next.battery,sizeof next.battery,eq);
         else if(!strcmp(line,"clock"))copy_value(next.clock,sizeof next.clock,eq);
         else if(!strcmp(line,"events.unread"))copy_value(next.unread,sizeof next.unread,eq);
+        else if(!strcmp(line,"media.status"))copy_value(next.media_status,sizeof next.media_status,eq);
+        else if(!strcmp(line,"media.artist"))copy_value(next.media_artist,sizeof next.media_artist,eq);
+        else if(!strcmp(line,"media.title"))copy_value(next.media_title,sizeof next.media_title,eq);
     }
     next.connected=1;
     *s=next;
@@ -69,7 +74,12 @@ static void render(Bar*b,int h,const State *s){
     x=draw_item(b,x,"FILES","$HOME/.local/bin/vfdfm",h);
     x=draw_item(b,x,"TERM","vfdterm",h);
     x=draw_item(b,x,"WEB","firefox",h);
-    x=draw_item(b,x,"MUSIC","spotify",h);
+    char music[80];
+    if(strcmp(s->media_status,"stopped") && s->media_title[0]){
+        const char *mark=!strcmp(s->media_status,"playing")?">":"||";
+        snprintf(music,sizeof music,"%s %.52s",mark,s->media_title);
+    }else snprintf(music,sizeof music,"MUSIC");
+    x=draw_item(b,x,music,"/home/adam/.local/bin/vfdmusic",h);
     x=draw_item(b,x,"NVIM","vfdterm nvim",h);
     x=draw_item(b,x,"DISCORD","discord",h);
     if(atoi(s->unread)>0){char ev[32];snprintf(ev,sizeof ev,"EVENTS %s",s->unread);x=draw_item(b,x,ev,"vfdshell",h);}

@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Wallpaper
+GenericName=VFD GIF Wallpaper
+Comment=Minimal animated GIF wallpaper renderer for VFD Desktop
+Exec=vfdwall
+Icon=preferences-desktop-wallpaper
+Terminal=false
+Categories=Settings;Utility;
+StartupNotify=false
+StartupWMClass=vfdwall

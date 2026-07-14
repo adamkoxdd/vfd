@@ -110,3 +110,7 @@ The notification service now supports stacked notifications, replacement IDs,
 urgency-aware timeouts, standard close/action D-Bus signals, unread state, and
 a bar indicator. Opening the Events view in VFD Shell marks events as read while
 preserving history.
+
+## Animated GIF wallpaper
+
+VFD now includes `vfdwall`, a small native GIF wallpaper renderer using X11, Xinerama, and giflib. Configure it in `~/.config/vfd/wall.ini`, launch it with `vfdwall`, and reload it with `pkill -HUP vfdwall`.

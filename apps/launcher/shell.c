@@ -135,6 +135,7 @@ static void load_root(App *a) {
     add_submenu(a, VIEW_POWER, "Power", "Lock, log out, reboot or shut down");
     add_action(a, "Settings", "Open the VFD Control Center", "vfdsettings");
     add_action(a, "Terminal", "Open VFD Terminal", "vfdterm");
+    add_action(a, "Wallpaper", "Start or reload the VFD GIF wallpaper", "pkill -HUP vfdwall 2>/dev/null || vfdwall >/tmp/vfdwall.log 2>&1 &");
 }
 
 static void parse_desktop_file(App *a, const char *path) {
