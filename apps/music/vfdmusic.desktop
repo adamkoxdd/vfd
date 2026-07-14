@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=VFD Music
+Comment=Local VFD music player and visualizer
+Exec=/home/adam/.local/bin/vfdmusic
+Icon=audio-x-generic
+Terminal=false
+Categories=AudioVideo;Audio;Player;
+StartupNotify=false
