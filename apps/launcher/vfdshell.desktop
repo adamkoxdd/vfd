@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=VFD Shell
+GenericName=Command Palette
+Comment=VFD desktop command shell
+Exec=vfdshell
+Terminal=false
+Categories=System;Utility;
+StartupWMClass=vfdshell

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Settings
+GenericName=VFD Control Center
+Comment=Configure the VFD desktop
+Exec=vfdsettings
+Terminal=false
+Categories=Settings;System;
+StartupWMClass=vfdsettings

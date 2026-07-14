@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Launcher
+GenericName=Command Palette
+Comment=VFD desktop command palette
+Exec=vfdlauncher
+Terminal=false
+Categories=Utility;System;
+StartupNotify=false
+StartupWMClass=vfdlauncher

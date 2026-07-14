@@ -17,6 +17,8 @@ int vfd_ui_monitor_count(VfdUi *ui);
 int vfd_ui_monitor_geometry(VfdUi *ui,int index,int *x,int *y,int *w,int *h);
 VfdWindow *vfd_window_create(VfdUi *ui,const VfdWindowConfig *cfg);
 void vfd_window_destroy(VfdWindow *win);
+void vfd_window_move(VfdWindow *win,int x,int y);
+void vfd_window_set_opacity(VfdWindow *win,double opacity);
 int vfd_color_parse(VfdWindow *win,const char *name,VfdColor *out);
 int vfd_text_width(VfdWindow *win,const char *text);
 void vfd_begin_frame(VfdWindow *win,VfdColor bg);

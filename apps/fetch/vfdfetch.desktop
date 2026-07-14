@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=VFD System Info
+Comment=VFD desktop system banner
+Exec=vfdterm vfdfetch
+Icon=computer
+Terminal=false
+Categories=System;

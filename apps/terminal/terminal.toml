@@ -1,0 +1,54 @@
+[window]
+opacity = 0.94
+padding = { x = 10, y = 8 }
+dynamic_padding = true
+decorations = "Full"
+title = "Terminal"
+
+[font]
+size = 11.0
+normal = { family = "Terminus", style = "Regular" }
+bold = { family = "Terminus", style = "Bold" }
+italic = { family = "Terminus", style = "Regular" }
+bold_italic = { family = "Terminus", style = "Bold" }
+offset = { x = 0, y = 1 }
+
+[colors.primary]
+background = "#0a0a0f"
+foreground = "#b0b0c0"
+
+[colors.cursor]
+text = "#0a0a0f"
+cursor = "#9b7fd4"
+
+[colors.selection]
+text = "#b0b0c0"
+background = "#291f38"
+
+[colors.normal]
+black = "#0a0a0f"
+red = "#c47fb0"
+green = "#7fba9f"
+yellow = "#b8a07a"
+blue = "#7f8fbf"
+magenta = "#9b7fd4"
+cyan = "#7fa9ba"
+white = "#b0b0c0"
+
+[colors.bright]
+black = "#505060"
+red = "#d88fc1"
+green = "#93cfb2"
+yellow = "#ccb58c"
+blue = "#93a5d4"
+magenta = "#b49be8"
+cyan = "#92becf"
+white = "#dedee8"
+
+[cursor]
+style = { shape = "Block", blinking = "On" }
+blink_interval = 650
+
+[scrolling]
+history = 10000
+multiplier = 3

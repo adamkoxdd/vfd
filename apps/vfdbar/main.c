@@ -15,7 +15,7 @@
 
 typedef struct { int x,w; const char *cmd; } Hit;
 typedef struct { VfdWindow *w; int width; Hit hits[MAX_HITS]; int nhit; VfdColor bg,fg,dim,accent,selection; } Bar;
-typedef struct { char cpu[16], memory[16], battery[16], clock[128]; int connected; } State;
+typedef struct { char cpu[16], memory[16], battery[16], unread[16], clock[128]; int connected; } State;
 
 static volatile sig_atomic_t running=1;
 static void stop(int s){(void)s;running=0;}
@@ -24,6 +24,7 @@ static void state_unknown(State *s){
     snprintf(s->cpu,sizeof s->cpu,"?");
     snprintf(s->memory,sizeof s->memory,"?");
     snprintf(s->battery,sizeof s->battery,"?");
+    snprintf(s->unread,sizeof s->unread,"0");
     snprintf(s->clock,sizeof s->clock,"--.--.---- // --:--:--");
     s->connected=0;
 }
@@ -47,6 +48,7 @@ static int fetch_state(State *s){
         else if(!strcmp(line,"memory"))copy_value(next.memory,sizeof next.memory,eq);
         else if(!strcmp(line,"battery"))copy_value(next.battery,sizeof next.battery,eq);
         else if(!strcmp(line,"clock"))copy_value(next.clock,sizeof next.clock,eq);
+        else if(!strcmp(line,"events.unread"))copy_value(next.unread,sizeof next.unread,eq);
     }
     next.connected=1;
     *s=next;
@@ -65,11 +67,12 @@ static void render(Bar*b,int h,const State *s){
     vfd_draw_rect(b->w,0,h-1,b->width,1,b->accent);
     int x=10;
     x=draw_item(b,x,"FILES","$HOME/.local/bin/vfdfm",h);
-    x=draw_item(b,x,"TERM","alacritty",h);
+    x=draw_item(b,x,"TERM","vfdterm",h);
     x=draw_item(b,x,"WEB","firefox",h);
     x=draw_item(b,x,"MUSIC","spotify",h);
-    x=draw_item(b,x,"NVIM","alacritty -e nvim",h);
+    x=draw_item(b,x,"NVIM","vfdterm nvim",h);
     x=draw_item(b,x,"DISCORD","discord",h);
+    if(atoi(s->unread)>0){char ev[32];snprintf(ev,sizeof ev,"EVENTS %s",s->unread);x=draw_item(b,x,ev,"vfdshell",h);}
     int cw=vfd_text_width(b->w,s->clock);
     vfd_draw_text(b->w,(b->width-cw)/2,baseline(b,h),s->clock,s->connected?b->accent:b->dim);
     char right[160];

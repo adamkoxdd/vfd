@@ -65,3 +65,48 @@ vfdfm ~/Projects
 ## Foundation 0.3 additions
 
 This milestone adds shared button, scroll-state, status-bar, aligned-label, list hit-testing, and container primitives. It also adds VISION.md, CONTRIBUTING.md, STYLE.md, and an updated roadmap. The daemon, graphical bar, and Files behavior remain unchanged.
+
+## Launcher
+
+`vfdshell` is the first VFD command palette with nested desktop actions. It scans XDG desktop entries, merges them with VFD desktop commands, and provides fuzzy keyboard search.
+
+```sh
+vfdshell
+```
+
+Recommended i3 binding:
+
+```i3
+bindsym $mod+space exec --no-startup-id ~/.local/bin/vfdshell
+for_window [class="(?i)^vfdshell$"] floating enable, border pixel 1
+```
+
+
+## Control Center
+
+Run `vfdsettings` to open Appearance, Components, Keybindings and About.
+
+`vfdlauncher` is retained as a compatibility symlink to `vfdshell`.
+
+## Terminal identity
+
+VFD includes `vfdterm`, a stable VFD entry point backed by Alacritty, and `vfdfetch`, a native daemon-aware system banner.
+
+```sh
+vfdterm
+vfdterm nvim
+vfdfetch
+```
+
+Install `alacritty`, `fastfetch` (optional), and `terminus-font`. The installed Fontconfig rule changes the preferred monospace family only; it does not force websites or proportional GUI text to use Terminus.
+
+## VFD Events 0.8
+
+This milestone adds `vfdnotify`, a native notification service implementing the freedesktop D-Bus interface. Notifications are stored in `vfdd` and exposed in VFD Shell under **Events**.
+
+## VFD Events 0.9
+
+The notification service now supports stacked notifications, replacement IDs,
+urgency-aware timeouts, standard close/action D-Bus signals, unread state, and
+a bar indicator. Opening the Events view in VFD Shell marks events as read while
+preserving history.
